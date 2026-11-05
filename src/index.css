@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Tajawal', system-ui, sans-serif;
+  }
+  body {
+    @apply min-h-screen text-lg text-stone-800 antialiased;
+    background:
+      radial-gradient(ellipse at 10% 0%, rgb(216 231 219 / 55%), transparent 34rem),
+      linear-gradient(180deg, #f8f6ef 0%, #f3ebd6 100%);
+  }
+  :focus-visible {
+    @apply outline outline-4 outline-offset-2 outline-leaf-500;
+  }
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-3xl border border-white/80 bg-white p-5 shadow-[0_8px_28px_-18px_rgba(46,82,57,0.32)];
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-bold
+           transition duration-200 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-leaf-700 text-white shadow-sm hover:bg-leaf-600 hover:shadow-md;
+  }
+  .btn-soft {
+    @apply bg-leaf-100 text-leaf-700 hover:bg-leaf-500 hover:text-white;
+  }
+  .btn-ghost {
+    @apply border border-sand-300 bg-white/70 text-stone-700 hover:border-leaf-500 hover:bg-leaf-50;
+  }
+  .btn-danger {
+    @apply border border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50;
+  }
+  .input {
+    @apply w-full rounded-2xl border border-sand-300 bg-white px-4 py-3 text-base
+           placeholder:text-stone-400 focus:border-leaf-500 focus:outline-none focus:ring-4 focus:ring-leaf-100;
+  }
+  .app-shell {
+    @apply mx-auto min-h-screen max-w-5xl px-4 pb-12 sm:px-6;
+  }
+  .app-header {
+    @apply sticky top-0 z-20 -mx-4 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-leaf-100/70 bg-[#f8f6ef]/90 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6;
+  }
+  .brand-mark {
+    @apply grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-leaf-700 text-xl font-extrabold text-white shadow-md shadow-leaf-700/20;
+  }
+  .page-hero {
+    @apply relative overflow-hidden rounded-[2rem] border border-leaf-100 bg-gradient-to-br from-white via-leaf-50 to-[#e6eddf] p-5 shadow-sm sm:p-8;
+  }
+  .eyebrow {
+    @apply text-sm font-bold tracking-wide text-leaf-600;
+  }
+  .section-title {
+    @apply text-2xl font-extrabold text-stone-800;
+  }
+  .stat-card {
+    @apply rounded-2xl border border-leaf-100 bg-white/80 p-3 text-center;
+  }
+  .form-label {
+    @apply block space-y-2 text-base font-bold text-stone-700;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
