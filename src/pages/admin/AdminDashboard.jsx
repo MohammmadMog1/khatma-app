@@ -12,20 +12,20 @@ const TABS = [
 export default function AdminDashboard() {
   const [tab, setTab] = useState('khatmas');
   return (
-    <div className="space-y-5">
-      <section className="page-hero">
+    <div className="space-y-4 sm:space-y-6">
+      <section className="page-hero px-4 py-5 sm:px-8 sm:py-8">
         <p className="eyebrow">إدارة وتنظيم</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-leaf-700">لوحة المشرف</h1>
-        <p className="mt-2 text-base text-stone-600">تابع الختمات والمستخدمين وسجلّ العمليات من مكان واحد.</p>
+        <h1 className="mt-1 text-2xl font-extrabold text-leaf-700 sm:text-3xl">لوحة المشرف</h1>
+        <p className="mt-2 text-sm leading-relaxed text-stone-600 sm:text-base">تابع الختمات والمستخدمين وسجلّ العمليات من مكان واحد.</p>
       </section>
-      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-sand-200 bg-white/60 p-1.5" role="tablist" aria-label="أقسام لوحة المشرف">
+      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-sand-200 bg-white/70 p-1.5 shadow-sm sm:gap-2" role="tablist" aria-label="أقسام لوحة المشرف">
         {TABS.map((t) => (
           <button
             key={t.id}
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={`shrink-0 rounded-xl px-5 py-2.5 text-base font-bold transition ${
+            className={`min-h-11 rounded-xl px-2 py-2.5 text-sm font-bold transition sm:px-5 sm:text-base ${
               tab === t.id
                 ? 'bg-leaf-700 text-white shadow-sm'
                 : 'text-stone-600 hover:bg-leaf-50 hover:text-leaf-700'

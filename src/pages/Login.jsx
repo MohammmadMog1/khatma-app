@@ -4,21 +4,20 @@ import { api } from '../lib/api';
 import { formatPhone, isValidPhone, normalizePhone } from '../lib/phone';
 import Notice from '../components/Notice';
 import PhoneFields, { phonesMatch } from '../components/PhoneFields';
+import SiteFooter from '../components/SiteFooter';
+import logo from '../../assets/WhatsApp Image 2026-11-06 at 10.46.19 PM.jpeg';
 
 const TITLES = {
   phone: {
     login: { h: 'أهلاً بعودتك', p: 'أدخل رقم هاتفك للمتابعة إلى حسابك' },
-    signup: { h: 'أنشئ حسابك', p: 'أدخل بياناتك للانضمام إلى ختمة القرآن' },
+    signup: { h: 'أنشئ حسابك', p: 'أدخل بياناتك للانضمام إلى نختُم معاً' },
   },
-  confirm: {
-    login: { h: 'تأكيد الرقم', p: 'تأكد أن الرقم صحيح قبل تسجيل الدخول' },
-    signup: { h: 'تأكيد الرقم', p: 'تأكد من رقمك لإكمال إنشاء الحساب' },
-  },
+  confirm: { h: 'تأكيد الرقم', p: 'تأكد من رقمك لإكمال إنشاء الحساب' },
   name: { h: 'أول مرة عندنا؟', p: 'اكتب اسمك ليظهر في حجوزاتك' },
   pin: { h: 'دخول المشرف', p: 'اكتب الرقم السري' },
 };
 
-export default function Login() {
+export default function Login({ onOpenTasbeeh, onStartTour }) {
   const { login } = useAuth();
   const [mode, setMode] = useState('login');
   const [step, setStep] = useState('phone'); // phone | confirm | name | pin
@@ -34,12 +33,16 @@ export default function Login() {
   function submitPhone(e) {
     e.preventDefault();
     setError('');
-    if (mode === 'signup' && name.trim().length < 2) {
-      setError('اكتب اسماً من حرفين على الأقل');
-      return;
-    }
     if (!isValidPhone(normalized)) {
       setError('رقم الهاتف غير صحيح، تأكد منه وحاول مرة أخرى');
+      return;
+    }
+    if (mode === 'login') {
+      callServer(null, null);
+      return;
+    }
+    if (name.trim().length < 2) {
+      setError('اكتب اسماً من حرفين على الأقل');
       return;
     }
     if (!phonesMatch(phone, phone2)) {
@@ -59,7 +62,13 @@ export default function Login() {
           login({ user: res.user, token: res.token ?? null });
           break;
         case 'needs_name':
-          setStep('name');
+          if (mode === 'login') {
+            setMode('signup');
+            setPhone2('');
+            setStep('phone');
+          } else {
+            setStep('name');
+          }
           break;
         case 'needs_pin':
           setStep('pin');
@@ -93,13 +102,13 @@ export default function Login() {
     setError('');
   }
 
-  const currentTitle = step === 'phone' || step === 'confirm' ? TITLES[step][mode] : TITLES[step];
+  const currentTitle = step === 'phone' ? TITLES.phone[mode] : TITLES[step];
 
   const header = (
     <header className="space-y-3 text-center">
-      <span className="brand-mark mx-auto h-14 w-14 rounded-2xl text-2xl" aria-hidden="true">خ</span>
+      <img className="mx-auto h-20 w-20 rounded-full object-cover shadow-md" src={logo} alt="شعار نختُم معاً" />
       <div>
-        <p className="eyebrow">ختمة القرآن</p>
+        <p className="eyebrow">نختُم معاً</p>
         <h1 className="mt-1 text-3xl font-extrabold text-leaf-700">{currentTitle.h}</h1>
         <p className="mt-1 text-base text-stone-600">{currentTitle.p}</p>
       </div>
@@ -109,10 +118,19 @@ export default function Login() {
   const errorBox = <Notice notice={error ? { type: 'err', text: error } : null} />;
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
-      <span className="pointer-events-none absolute -right-10 top-10 select-none text-[14rem] leading-none text-leaf-700/[0.045]" aria-hidden="true">۞</span>
-      {step === 'phone' && (
-        <form onSubmit={submitPhone} className="card relative z-10 w-full max-w-md space-y-6 p-6 sm:p-8">
+    <>
+      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-10">
+        <span className="pointer-events-none absolute -right-10 top-10 select-none text-[14rem] leading-none text-leaf-700/[0.045]" aria-hidden="true">۞</span>
+        <div className="relative z-10 mb-5 flex w-full max-w-md justify-between gap-3">
+          <button type="button" className="btn btn-ghost px-3 py-2 text-sm" onClick={onOpenTasbeeh}>
+            المسبحة الإلكترونية
+          </button>
+          <button type="button" className="btn btn-ghost px-3 py-2 text-sm" onClick={onStartTour}>
+            رحلة تعريفية
+          </button>
+        </div>
+        {step === 'phone' && (
+          <form onSubmit={submitPhone} className="card relative z-10 w-full max-w-md space-y-6 p-6 sm:p-8">
           {header}
           <div className="grid grid-cols-2 gap-1 rounded-2xl border border-sand-200 bg-sand-50 p-1" role="tablist" aria-label="اختيار الدخول أو إنشاء حساب">
             {[
@@ -151,16 +169,23 @@ export default function Login() {
               />
             </label>
           )}
-          <PhoneFields phone={phone} confirm={phone2} onPhone={setPhone} onConfirm={setPhone2} autoFocus />
+          <PhoneFields
+            phone={phone}
+            confirm={phone2}
+            onPhone={setPhone}
+            onConfirm={setPhone2}
+            needConfirm={mode === 'signup'}
+            autoFocus
+          />
           {errorBox}
           <button className="btn btn-primary w-full text-lg">
-            {mode === 'signup' ? 'متابعة إنشاء الحساب' : 'متابعة تسجيل الدخول'}
+            {mode === 'signup' ? 'متابعة إنشاء الحساب' : 'تسجيل الدخول'}
           </button>
-        </form>
-      )}
+          </form>
+        )}
 
-      {step === 'confirm' && (
-        <div className="card relative z-10 w-full max-w-md space-y-6 p-6 sm:p-8">
+        {step === 'confirm' && (
+          <div className="card relative z-10 w-full max-w-md space-y-6 p-6 sm:p-8">
           {header}
           <div className="rounded-2xl border border-leaf-200 bg-leaf-50 p-5 text-center">
             <p className="text-sm text-stone-600">رقمك الذي كتبته</p>
@@ -169,24 +194,24 @@ export default function Login() {
             </p>
           </div>
           <p className="text-center text-base leading-relaxed">
-            هذا الرقم هو مفتاح دخولك في كل مرة. <strong>هل هو رقمك الصحيح؟</strong>
+            هذا الرقم هو مفتاح دخولك في كل مرة. <strong>هل أنت متأكد من كتابته بشكل صحيح؟</strong>
           </p>
           {errorBox}
           <button
             className="btn btn-primary w-full text-lg"
             disabled={busy}
-            onClick={() => callServer(mode === 'signup' ? name.trim() : null, null)}
+            onClick={() => callServer(name.trim(), null)}
           >
-            {busy ? 'لحظة...' : mode === 'signup' ? 'تأكيد وإنشاء الحساب' : 'تأكيد وتسجيل الدخول'}
+            {busy ? 'لحظة...' : 'تأكيد وإنشاء الحساب'}
           </button>
           <button className="btn btn-ghost w-full" disabled={busy} onClick={backToPhone}>
             لا، أريد تعديل الرقم
           </button>
-        </div>
-      )}
+          </div>
+        )}
 
-      {(step === 'name' || step === 'pin') && (
-        <form onSubmit={submitDetails} className="card relative z-10 w-full max-w-md space-y-6 p-6 sm:p-8">
+        {(step === 'name' || step === 'pin') && (
+          <form onSubmit={submitDetails} className="card relative z-10 w-full max-w-md space-y-6 p-6 sm:p-8">
           {header}
           <div className="rounded-2xl border border-sand-200 bg-sand-50 p-4 text-center">
             <p className="text-sm text-stone-600">رقم الهاتف</p>
@@ -237,8 +262,12 @@ export default function Login() {
           <button type="button" className="btn btn-ghost w-full" onClick={backToPhone}>
             تغيير رقم الهاتف
           </button>
-        </form>
-      )}
-    </main>
+          </form>
+        )}
+      </main>
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <SiteFooter />
+      </div>
+    </>
   );
 }

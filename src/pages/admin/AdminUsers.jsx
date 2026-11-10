@@ -14,6 +14,7 @@ export default function AdminUsers() {
   const [notice, setNotice] = useState(null);
   const [form, setForm] = useState({ phone: '', name: '', pin: '' });
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [editing, setEditing] = useState(null); // { id, name, phone, phone2, original }
 
   const load = useCallback(async () => {
@@ -76,17 +77,35 @@ export default function AdminUsers() {
     }
   }
 
+  async function deleteUser(u) {
+    const confirmed = window.confirm(
+      `حذف حساب ${u.name} نهائياً؟\n\nسيتم تحرير أجزائه المحجوزة، والإبقاء على الأجزاء المنجزة دون ربطها بحسابه. كما ستحذف السجلات المرتبطة بحسابه. لا يمكن التراجع عن هذا الإجراء.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(u.id);
+    try {
+      await admin.deleteUser(u.id);
+      setNotice({ type: 'ok', text: `تم حذف حساب ${u.name}` });
+      await load();
+    } catch (err) {
+      setNotice({ type: 'err', text: err.message });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   const q = query.trim();
   const list = (users || []).filter(
     (u) => !q || u.name.includes(q) || u.phone.includes(normalizePhone(q) || q)
   );
 
   return (
-    <div className="space-y-5">
-      <form onSubmit={addAdmin} className="card space-y-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-5">
+      <form onSubmit={addAdmin} className="card space-y-4 p-4 sm:p-6">
         <div>
           <p className="eyebrow">الصلاحيات</p>
-          <h2 className="mt-1 text-xl font-extrabold">إضافة أدمن</h2>
+          <h2 className="mt-1 text-lg font-extrabold sm:text-xl">إضافة أدمن</h2>
         </div>
         <p className="text-sm leading-relaxed text-stone-600">
           اكتب رقم هاتفه ورقماً سرياً من 6 أرقام. إن لم يكن مسجلاً من قبل فاكتب اسمه أيضاً.
@@ -119,7 +138,7 @@ export default function AdminUsers() {
             required
           />
         </div>
-        <button className="btn btn-primary" disabled={busy}>
+        <button className="btn btn-primary min-h-11 w-full sm:w-auto" disabled={busy}>
           {busy ? 'لحظة...' : 'إضافة أدمن'}
         </button>
       </form>
@@ -129,7 +148,7 @@ export default function AdminUsers() {
       <label className="block space-y-2">
         <span className="text-sm font-bold text-stone-600">البحث عن مستخدم</span>
         <input
-          className="input"
+          className="input min-h-12"
           type="search"
           placeholder="اكتب الاسم أو رقم الهاتف"
           value={query}
@@ -144,7 +163,7 @@ export default function AdminUsers() {
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
           {list.map((u) => (
-            <li key={u.id} className="card space-y-4 transition hover:shadow-md">
+            <li key={u.id} className="card space-y-4 p-4 transition hover:shadow-md sm:p-5">
               {editing?.id === u.id ? (
                 <form onSubmit={saveEdit} className="space-y-4">
                   <label className="block space-y-2">
@@ -188,9 +207,10 @@ export default function AdminUsers() {
                       <span className="rounded-full bg-sand-50 px-3 py-1.5">انضم {formatDate(u.created_at)}</span>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
                     <button
-                      className="btn btn-ghost px-3 py-2 text-sm"
+                      type="button"
+                      className="btn btn-ghost min-h-11 px-3 py-2 text-sm"
                       onClick={() =>
                         setEditing({
                           id: u.id,
@@ -204,8 +224,18 @@ export default function AdminUsers() {
                       تعديل
                     </button>
                     {u.role === 'admin' && u.id !== me.id && (
-                      <button className="btn btn-danger px-3 py-2 text-sm" onClick={() => removeAdmin(u)}>
+                      <button type="button" className="btn btn-danger min-h-11 px-3 py-2 text-sm" onClick={() => removeAdmin(u)}>
                         إزالة من الأدمن
+                      </button>
+                    )}
+                    {u.id !== me.id && (
+                      <button
+                        type="button"
+                        className="btn btn-danger min-h-11 px-3 py-2 text-sm"
+                        disabled={deletingId !== null}
+                        onClick={() => deleteUser(u)}
+                      >
+                        {deletingId === u.id ? 'جارٍ الحذف...' : 'حذف الحساب'}
                       </button>
                     )}
                   </div>

@@ -13,6 +13,7 @@ const MESSAGES = {
   invalid_pin: 'الرقم السري يجب أن يكون 6 أرقام',
   nothing_to_revoke: 'هذا الجزء غير محجوز',
   cannot_remove_self: 'لا يمكنك إزالة نفسك من الأدمن',
+  cannot_delete_self: 'لا يمكنك حذف حسابك الحالي',
   phone_taken: 'هذا الرقم مسجّل لحساب آخر',
   khatma_active: 'لا يمكن حذف ختمة مفعّلة، ألغِ تفعيلها أولاً',
 };
@@ -41,6 +42,7 @@ export const api = {
     rpc('update_profile', { p_user_id: userId, p_name: name, p_phone: phone, p_token: token ?? null }),
   login: (phone, name, pin) =>
     rpc('login_user', { p_phone: phone, p_name: name ?? null, p_pin: pin ?? null }),
+  getKhatmaStats: () => rpc('get_public_khatma_stats', {}),
   listKhatmas: (userId) => rpc('list_open_khatmas', { p_user_id: userId }),
   getParts: (khatmaId, userId) =>
     rpc('get_khatma_parts', { p_khatma_id: khatmaId, p_user_id: userId }),
@@ -75,6 +77,7 @@ export function adminApi(token) {
     addAdmin: (phone, name, pin) =>
       rpc('admin_add_admin', { p_token: token, p_phone: phone, p_name: name || null, p_pin: pin }),
     removeAdmin: (userId) => rpc('admin_remove_admin', { p_token: token, p_user_id: userId }),
+    deleteUser: (userId) => rpc('admin_delete_user', { p_token: token, p_user_id: userId }),
     logs: (khatmaId) =>
       rpc('admin_get_logs', { p_token: token, p_khatma_id: khatmaId || null, p_limit: 100 }),
     logout: () => rpc('admin_logout', { p_token: token }),

@@ -5,6 +5,7 @@ import { STATUS_LABEL, formatDate } from '../../lib/constants';
 import { formatPhone } from '../../lib/phone';
 import ProgressBar from '../../components/ProgressBar';
 import Notice from '../../components/Notice';
+import CompletionDua from '../../components/CompletionDua';
 
 function KhatmaDetail({ khatmaId, onBack }) {
   const { token } = useAuth();
@@ -36,15 +37,45 @@ function KhatmaDetail({ khatmaId, onBack }) {
     load();
   }
 
+  async function finishKhatma() {
+    if (!window.confirm('هل تريد إنهاء الختمة وإخفاءها من قائمة المشاركين؟')) return;
+    try {
+      await admin.setOpen(khatmaId, false);
+      onBack();
+    } catch (e) {
+      setNotice({ type: 'err', text: e.message });
+    }
+  }
+
   if (!data) return <p className="py-8 text-center text-stone-500">جارٍ التحميل...</p>;
   const parts = data.parts.filter((p) => filter === 'all' || p.status === filter);
+  const completed = data.parts.length === 30 && data.parts.every((part) => part.status === 'completed');
+
+  if (completed) {
+    return (
+      <div className="space-y-4 sm:space-y-5">
+        <button className="btn btn-ghost min-h-11" onClick={onBack}>
+          ‹ كل الختمات
+        </button>
+        <div className="page-hero px-4 py-5 sm:px-8 sm:py-8">
+          <p className="eyebrow">اكتملت جميع الأجزاء</p>
+          <h2 className="mt-1 text-2xl font-extrabold text-leaf-700">{data.khatma.name}</h2>
+        </div>
+        <Notice notice={notice} onClose={() => setNotice(null)} />
+        <CompletionDua />
+        <button className="btn btn-primary min-h-12 w-full sm:w-auto" onClick={finishKhatma}>
+          إنهاء الختمة
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 sm:space-y-5">
       <button className="btn btn-ghost" onClick={onBack}>
         ‹ كل الختمات
       </button>
-      <div className="page-hero">
+      <div className="page-hero px-4 py-5 sm:px-8 sm:py-8">
         <p className="text-sm font-medium text-leaf-600">
           الختمة رقم {data.khatma.number} · {data.khatma.is_open ? 'مفعّلة' : 'موقوفة'}
         </p>
@@ -53,13 +84,14 @@ function KhatmaDetail({ khatmaId, onBack }) {
       </div>
       <Notice notice={notice} onClose={() => setNotice(null)} />
 
-      <div className="flex flex-wrap gap-2">
+      <div className="mobile-nav-scroll -mx-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
         {['all', 'available', 'reserved', 'completed'].map((s) => (
           <button
             key={s}
+            type="button"
             aria-pressed={filter === s}
             onClick={() => setFilter(s)}
-            className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+            className={`min-h-11 shrink-0 snap-start rounded-full px-4 py-2 text-sm font-bold transition ${
               filter === s ? 'bg-leaf-700 text-white shadow-sm' : 'border border-sand-200 bg-white text-stone-600 hover:bg-leaf-50'
             }`}
           >
@@ -170,13 +202,21 @@ export default function AdminKhatmas() {
   }
 
   async function toggleOpen(k) {
+    const completed = Number(k.completed) === 30;
     const msg = k.is_open
-      ? `إلغاء تفعيل «${k.name}»؟ ستختفي من قائمة المستخدمين ولن يستطيعوا الحجز فيها، وتبقى بياناتها محفوظة.`
+      ? completed
+        ? `إنهاء «${k.name}»؟ ستبقى الختمة ودعاؤها محفوظين في لوحة المشرف، وستختفي من قائمة المشاركين.`
+        : `إلغاء تفعيل «${k.name}»؟ ستختفي من قائمة المستخدمين ولن يستطيعوا الحجز فيها، وتبقى بياناتها محفوظة.`
       : `تفعيل «${k.name}»؟ ستظهر للمستخدمين من جديد.`;
     if (!window.confirm(msg)) return;
     try {
       await admin.setOpen(k.id, !k.is_open);
-      setNotice({ type: 'ok', text: k.is_open ? 'تم إلغاء تفعيل الختمة' : 'تم تفعيل الختمة' });
+      setNotice({
+        type: 'ok',
+        text: k.is_open
+          ? completed ? 'تم إنهاء الختمة وإخفاؤها عن المشاركين' : 'تم إلغاء تفعيل الختمة'
+          : 'تم تفعيل الختمة',
+      });
       await load();
     } catch (err) {
       setNotice({ type: 'err', text: err.message });
@@ -216,11 +256,11 @@ export default function AdminKhatmas() {
   if (detail) return <KhatmaDetail khatmaId={detail} onBack={() => { setDetail(null); load(); }} />;
 
   return (
-    <div className="space-y-5">
-      <form onSubmit={create} className="card space-y-4 sm:p-6">
+    <div className="space-y-4 sm:space-y-5">
+      <form onSubmit={create} className="card space-y-4 p-4 sm:p-6">
         <div>
           <p className="eyebrow">إنشاء جديد</p>
-          <h2 className="mt-1 text-xl font-extrabold">ختمة جديدة</h2>
+          <h2 className="mt-1 text-lg font-extrabold sm:text-xl">ختمة جديدة</h2>
           <p className="mt-1 text-sm text-stone-500">ستُنشأ الختمة مع 30 جزءاً، ويمكن تفعيلها بعد الإنشاء.</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -246,8 +286,10 @@ export default function AdminKhatmas() {
         <p className="card text-center text-stone-600">لا توجد ختمات بعد. أنشئ أول ختمة من الأعلى.</p>
       ) : (
         <ul className="grid gap-4 lg:grid-cols-2">
-          {items.map((k) => (
-            <li key={k.id} className={`card space-y-4 transition hover:shadow-md ${k.is_open ? '' : 'bg-stone-50/70'}`}>
+          {items.map((k) => {
+            const completed = Number(k.completed) === 30;
+            return (
+            <li key={k.id} className={`card space-y-4 p-4 transition hover:shadow-md sm:p-5 ${k.is_open ? '' : 'bg-stone-50/70'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="eyebrow">الختمة رقم {k.number}</p>
@@ -269,39 +311,48 @@ export default function AdminKhatmas() {
                       </div>
                     </form>
                   ) : (
-                    <h3 className="mt-1 text-xl font-extrabold">{k.name}</h3>
+                    <h3 className="mt-1 text-lg font-extrabold sm:text-xl">{k.name}</h3>
                   )}
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-base font-bold ${
-                    k.is_open ? 'bg-leaf-100 text-leaf-700' : 'bg-sand-200 text-stone-600'
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold sm:text-sm ${
+                    completed ? 'bg-leaf-100 text-leaf-700' : k.is_open ? 'bg-leaf-100 text-leaf-700' : 'bg-sand-200 text-stone-600'
                   }`}
                 >
-                  {k.is_open ? 'مفعّلة' : 'موقوفة'}
+                  {completed ? (k.is_open ? 'مكتملة · بانتظار الإنهاء' : 'مكتملة ومنتهية') : k.is_open ? 'مفعّلة' : 'موقوفة'}
                 </span>
               </div>
-              <ProgressBar completed={k.completed} reserved={k.reserved} available={k.available} />
-              <div className="grid grid-cols-3 gap-2">
-                <div className="stat-card"><span className="block font-extrabold text-leaf-700">{k.available}</span><span className="text-xs text-stone-500">متاح</span></div>
-                <div className="stat-card"><span className="block font-extrabold text-amber-700">{k.reserved}</span><span className="text-xs text-stone-500">محجوز</span></div>
-                <div className="stat-card"><span className="block font-extrabold text-stone-700">{k.completed}</span><span className="text-xs text-stone-500">مكتمل</span></div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button className="btn btn-primary" onClick={() => setDetail(k.id)}>
-                  مراقبة الأجزاء
-                </button>
-                <button className="btn btn-ghost" onClick={() => setEditing({ id: k.id, name: k.name })}>
+              {completed ? (
+                <CompletionDua />
+              ) : (
+                <>
+                  <ProgressBar completed={k.completed} reserved={k.reserved} available={k.available} />
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                    <div className="stat-card px-1.5 py-2 sm:p-3"><span className="block font-extrabold text-leaf-700">{k.available}</span><span className="text-xs text-stone-500">متاح</span></div>
+                    <div className="stat-card px-1.5 py-2 sm:p-3"><span className="block font-extrabold text-amber-700">{k.reserved}</span><span className="text-xs text-stone-500">محجوز</span></div>
+                    <div className="stat-card px-1.5 py-2 sm:p-3"><span className="block font-extrabold text-stone-700">{k.completed}</span><span className="text-xs text-stone-500">مكتمل</span></div>
+                  </div>
+                </>
+              )}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                {!completed && (
+                  <button className="btn btn-primary min-h-11 px-3 text-sm sm:text-base" onClick={() => setDetail(k.id)}>
+                    مراقبة الأجزاء
+                  </button>
+                )}
+                <button className="btn btn-ghost min-h-11 px-3 text-sm sm:text-base" onClick={() => setEditing({ id: k.id, name: k.name })}>
                   تعديل الاسم
                 </button>
-                <button className="btn btn-ghost" onClick={() => toggleOpen(k)}>
-                  {k.is_open ? 'إلغاء التفعيل' : 'تفعيل'}
+                <button className="btn btn-ghost min-h-11 px-3 text-sm sm:text-base" onClick={() => toggleOpen(k)}>
+                  {completed ? (k.is_open ? 'إنهاء الختمة' : 'إعادة التفعيل') : k.is_open ? 'إلغاء التفعيل' : 'تفعيل'}
                 </button>
-                <button className="btn btn-danger" onClick={() => remove(k)}>
+                <button className="btn btn-danger min-h-11 px-3 text-sm sm:text-base" onClick={() => remove(k)}>
                   حذف
                 </button>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

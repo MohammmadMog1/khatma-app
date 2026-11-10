@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import ProgressBar from '../components/ProgressBar';
 import Notice from '../components/Notice';
+import CompletionDua from '../components/CompletionDua';
 
 export default function KhatmaList({ onOpen }) {
   const { user } = useAuth();
@@ -45,47 +46,65 @@ export default function KhatmaList({ onOpen }) {
   }
 
   return (
-    <ul className="grid gap-4 md:grid-cols-2">
-      {items.map((k) => (
-        <li key={k.id}>
-          <button
-            type="button"
-            onClick={() => onOpen(k.id)}
-            className="group card w-full space-y-4 text-start transition duration-200 hover:-translate-y-0.5 hover:border-leaf-300 hover:shadow-lg active:scale-[0.99]"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="eyebrow">الختمة رقم {k.number}</p>
-                <h2 className="mt-1 truncate text-xl font-extrabold sm:text-2xl">{k.name}</h2>
-              </div>
-              {k.mine > 0 && (
-                <span className="shrink-0 rounded-full bg-leaf-100 px-3 py-1.5 text-sm font-bold text-leaf-700">
-                  أجزاؤك: {k.mine}
-                </span>
-              )}
-            </div>
-            <ProgressBar completed={k.completed} reserved={k.reserved} available={k.available} />
-            <div className="grid grid-cols-3 gap-2">
-              <div className="stat-card">
-                <span className="block text-lg font-extrabold text-leaf-700">{k.available}</span>
-                <span className="text-xs text-stone-500 sm:text-sm">متاح</span>
-              </div>
-              <div className="stat-card">
-                <span className="block text-lg font-extrabold text-amber-700">{k.reserved}</span>
-                <span className="text-xs text-stone-500 sm:text-sm">محجوز</span>
-              </div>
-              <div className="stat-card">
-                <span className="block text-lg font-extrabold text-stone-700">{k.completed}</span>
-                <span className="text-xs text-stone-500 sm:text-sm">مكتمل</span>
-              </div>
-            </div>
-            <p className="flex items-center justify-between text-sm font-bold text-leaf-700">
-              <span>عرض الأجزاء والحجز</span>
-              <span className="transition group-hover:-translate-x-1" aria-hidden="true">←</span>
-            </p>
-          </button>
-        </li>
-      ))}
+    <ul className="grid gap-3 sm:gap-4 md:grid-cols-2">
+      {items.map((k) => {
+        const completed = Number(k.completed) === 30;
+        return (
+          <li key={k.id}>
+            {completed ? (
+              <article className="card space-y-4 p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="eyebrow">الختمة رقم {k.number}</p>
+                    <h2 className="mt-1 truncate text-lg font-extrabold sm:text-2xl">{k.name}</h2>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-leaf-100 px-3 py-1.5 text-sm font-bold text-leaf-700">
+                    مكتملة
+                  </span>
+                </div>
+                <CompletionDua />
+              </article>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onOpen(k.id)}
+                className="group card w-full space-y-3.5 p-4 text-start transition duration-200 hover:-translate-y-0.5 hover:border-leaf-300 hover:shadow-lg active:scale-[0.99] sm:space-y-4 sm:p-5"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="eyebrow">الختمة رقم {k.number}</p>
+                    <h2 className="mt-1 truncate text-lg font-extrabold sm:text-2xl">{k.name}</h2>
+                  </div>
+                  {k.mine > 0 && (
+                    <span className="shrink-0 rounded-full bg-leaf-100 px-3 py-1.5 text-sm font-bold text-leaf-700">
+                      أجزاؤك: {k.mine}
+                    </span>
+                  )}
+                </div>
+                <ProgressBar completed={k.completed} reserved={k.reserved} available={k.available} />
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                  <div className="stat-card px-1.5 py-2 sm:p-3">
+                    <span className="block text-base font-extrabold text-leaf-700 sm:text-lg">{k.available}</span>
+                    <span className="text-xs text-stone-500 sm:text-sm">متاح</span>
+                  </div>
+                  <div className="stat-card px-1.5 py-2 sm:p-3">
+                    <span className="block text-base font-extrabold text-amber-700 sm:text-lg">{k.reserved}</span>
+                    <span className="text-xs text-stone-500 sm:text-sm">محجوز</span>
+                  </div>
+                  <div className="stat-card px-1.5 py-2 sm:p-3">
+                    <span className="block text-base font-extrabold text-stone-700 sm:text-lg">{k.completed}</span>
+                    <span className="text-xs text-stone-500 sm:text-sm">مكتمل</span>
+                  </div>
+                </div>
+                <p className="flex items-center justify-between text-sm font-bold text-leaf-700">
+                  <span>عرض الأجزاء والحجز</span>
+                  <span className="transition group-hover:-translate-x-1" aria-hidden="true">←</span>
+                </p>
+              </button>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

@@ -52,6 +52,13 @@
   .app-header {
     @apply sticky top-0 z-20 -mx-4 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-leaf-100/70 bg-[#f8f6ef]/90 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6;
   }
+  .mobile-nav-scroll {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mobile-nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
   .brand-mark {
     @apply grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-leaf-700 text-xl font-extrabold text-white shadow-md shadow-leaf-700/20;
   }
@@ -69,6 +76,19 @@
   }
   .form-label {
     @apply block space-y-2 text-base font-bold text-stone-700;
+  }
+}
+
+@media (max-width: 639px) {
+  .app-header {
+    align-items: flex-start;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .app-shell {
+    @apply px-3;
   }
 }
 

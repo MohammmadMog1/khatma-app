@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { STATUS_LABEL } from '../lib/constants';
 import ProgressBar from '../components/ProgressBar';
 import Notice from '../components/Notice';
+import CompletionDua from '../components/CompletionDua';
 
 const FILTERS = [
   { id: 'all', label: 'الكل' },
@@ -132,6 +133,22 @@ export default function KhatmaView({ khatmaId, onBack }) {
   const visible = parts.filter((p) =>
     filter === 'all' ? true : filter === 'available' ? p.status === 'available' : p.status !== 'available'
   );
+
+  if (parts.length === 30 && count('completed') === 30) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <button className="btn btn-ghost min-h-11" onClick={onBack}>
+          ‹ كل الختمات
+        </button>
+        <section className="page-hero px-4 py-5 sm:px-8 sm:py-8">
+          <p className="eyebrow">اكتملت الختمة</p>
+          <h1 className="mt-1 text-2xl font-extrabold text-leaf-700 sm:text-3xl">{khatma.name}</h1>
+          <p className="mt-2 text-sm text-stone-600 sm:text-base">تقبّل الله من جميع المشاركين.</p>
+        </section>
+        <CompletionDua />
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${selected.size > 0 ? 'pb-32' : ''}`}>
